@@ -23,6 +23,8 @@ class ViewController: UIViewController,UITextFieldDelegate,UIPickerViewDelegate,
     var PricePicker = UIPickerView()
     var ProdactNameString = ""
     let realm = try! Realm()
+    var imageData: Data?
+    var pickedImage: UIImage?
     
     var documentDirectoryFileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     
@@ -113,38 +115,38 @@ class ViewController: UIViewController,UITextFieldDelegate,UIPickerViewDelegate,
     
     @IBAction func SendButton(_ sender: Any) {
         // フォームから入力されたデータを取得
-        let janl = JanlText.text ?? ""
-        let price = Int(PriceText.text ?? "") ?? 0
-        let product = ProdactText.text ?? ""
-
-        // 保存する日時を取得し、文字列に変換
-            let date = Date()
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-            let dateString = dateFormatter.string(from: date)
-        
-        // Realmにデータを保存
-        let realm = try! Realm()
-        let shopData = RealmModel()
-        shopData.janl = janl
-        shopData.price = price
-        shopData.product = product
-        shopData.date = dateString
-
-        // 画像データも保存する場合は以下のように設定
-        // shopData.imageData = imageData
-
-        // データをRealmに書き込む
-        try! realm.write {
-            realm.add(shopData)
+                let janl = JanlText.text ?? ""
+                let price = Int(PriceText.text ?? "") ?? 0
+                let product = ProdactText.text ?? ""
+                
+                // 保存する日時を取得し、文字列に変換
+                let date = Date()
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                let newdateString = dateFormatter.string(from: date)
+                
+                // Realmにデータを保存
+                let realm = try! Realm()
+                let shopData = RealmModel()
+                shopData.janl = janl
+                shopData.price = price
+                shopData.product = product
+                shopData.date = newdateString
+                
+                // 画像データも保存する場合は以下のように設定
+                shopData.imageData = imageData
+                
+                // データをRealmに書き込む
+                try! realm.write {
+                    realm.add(shopData)
+                }
+                
+                // 送信後、フォームをクリア
+                ImageView.image = UIImage(named: "bkcamera")
+                JanlText.text = ""
+                PriceText.text = ""
+                ProdactText.text = ""
         }
-
-        // 送信後、フォームをクリア
-        ImageView.image = UIImage(named: "bkcamera")
-        JanlText.text = ""
-        PriceText.text = ""
-        ProdactText.text = ""
-    }
     
     
         
@@ -172,12 +174,13 @@ class ViewController: UIViewController,UITextFieldDelegate,UIPickerViewDelegate,
     }
         
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        if let pickedImage = info[.editedImage] as? UIImage {
-                ImageView.image = pickedImage
+        if let image = info[.editedImage] as? UIImage {
+            pickedImage = image // 選択された画像を pickedImage に格納
+                ImageView.image = pickedImage // 画像を ImageView に表示
+            imageData = image.jpegData(compressionQuality: 1.0)
+                }
                 picker.dismiss(animated: true, completion: nil)
-            }
         }
-        
         // 撮影がキャンセルされた時に呼ばれる
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             picker.dismiss(animated: true, completion: nil)
